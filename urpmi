@@ -485,7 +485,7 @@ sub ask_choice {
 
     my (@l) = map {
 	my ($name, $summary) = (scalar($_->fullname), translate($_->summary));
-	print "GOT: $name\n";
+	$urpm->{debug_URPM}(N("GOT: ". $name)) if $urpm->{debug_URPM};
 	$_->flag_installed ?
           ($_->summary ?
              #-PO: here format is "<package_name>: <summary> (to upgrade)"
