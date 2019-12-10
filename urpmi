@@ -38,6 +38,7 @@ our $allow_medium_change = 0;
 our $auto_select = 0;
 our $auto_update = 0;
 our $force_req_update = 0;
+our $auto_req = 1;
 our $no_install = 0;
 our $no_remove = 0;
 our $install_src = 0;
@@ -78,11 +79,13 @@ usage:
 ") . N("  --sortmedia    - sort media according to substrings separated by comma.
 ") . N("  --synthesis    - use the given synthesis instead of urpmi db.
 ") . N("  --auto         - non-interactive mode, assume default answers to questions.
+") . N("  --auto-req     - automatically choose among possible alternatives.
 ") . N("  --auto-select  - automatically select packages to upgrade the system.
 ") . N("  --auto-update  - update media then upgrade the system.
 ") . N("    --no-md5sum    - disable MD5SUM file checking.
 ") . N("    --force-key    - force update of gpg key.
 ") . N("  --auto-orphans - remove orphans without asking
+") . N("  --no-auto-req  - ask user to choose among possible alternatives.
 ") . N("  --no-suggests  - do not auto select \"suggested\" packages.
 ") . N("  --no-uninstall - never ask to uninstall a package, abort the installation.
 ") . N("  --no-install   - don't install packages (only download)
@@ -484,7 +487,7 @@ sub ask_choice {
 
     my $n = 1; #- default value.
 
-    if (@l > 1 && !$urpm->{options}{auto}) {
+    if (@l > 1 && !$urpm->{options}{auto} && (!$auto_req || $urpm->{options}{'no-auto-req'}) ) {
 	print N("In order to satisfy the '%s' dependency, one of the following packages is needed:", $virtual_pkg_name), "\n";
 	my $i = 0;
 	foreach (@l) { print " " . ++$i . "- $_\n" }
@@ -497,7 +500,7 @@ sub ask_choice {
 	}
     }
 
-    if (@l > 1 && $urpm->{options}{auto}) {
+    if (@l > 1 && ($urpm->{options}{auto} || $auto_req)) {
         my @all_names = (@names, @src_names);
         $n = urpm::select::get_best_choice($urpm, $choices, @all_names);
     }

@@ -96,7 +96,8 @@ _urpmi()
 	    --ignorearch --strict-arch --wget-options --curl-options \
 	    --prozilla-options --rsync-options --resume --retry --skip \
 	    --prefer --nolock --more-choices --downgrade \
-	    --force-req-update --no-force-req-update"
+	    --force-req-update --no-force-req-update \
+	    --auto-req --no-auto-req"
 	# add dangereous option for everything else as rurpmi
 	if [[ ${COMP_WORDS[0]} != *rurpmi ]]; then
 	    options="$options --root --use-distrib --env --auto-orphans \

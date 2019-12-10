@@ -187,6 +187,7 @@ sub load_config_raw {
 	    |restricted
 	    |strict-arch
 	    |nopubkey
+	    |no-auto-req
 	    |no-force-req-update
 	    |no-download-all
 	    |resume)(?:\s*:\s*(.*))?$/x

@@ -3704,6 +3704,21 @@ msgstr ""
 "для источника «%s» отсутствует xml-info; только частичный результат для "
 "пакета %s"
 
+#: ../urpme:63
+#, c-format
+msgid "  --auto-req     - automatically choose among possible alternatives.\n"
+msgstr "  --auto-req     - автоматически делать выбор между несколькими альтернативами.\n"
+
+#: ../urpme:64
+#, c-format
+msgid "  --no-auto-req  - ask user to choose among possible alternatives.\n"
+msgstr "  --no-auto-req  - при наличии альтернатив, спрашивать пользователя.\n"
+
+#: ../urpme:65
+#, c-format
+msgid "  --no-download-all - download packages only when they are needed\n"
+msgstr "  --no-download-all - скачивать каждый пакет непосредственно перед его установкой\n"
+
 #: ../urpmq:435
 #, c-format
 msgid "no xml info for medium \"%s\", only partial result for packages %s"

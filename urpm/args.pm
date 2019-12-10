@@ -108,6 +108,8 @@ my %options_spec = (
 	'auto-select' => \$::auto_select,
 	'force-req-update' => sub { $::force_req_update = 1; $urpm->{options}{'no-force-req-update'} = 0; },
 	'no-force-req-update' => sub { $::force_req_update = 0; },
+	'auto-req' => sub { $::auto_req = 1; $urpm->{options}{'no-auto-req'} = 0; },
+	'no-auto-req' => sub { $::auto_req = 0; },
 	'auto-update' => sub { $::auto_update = $::auto_select = 1 },
 	'auto-orphans' => \$options{auto_orphans},
 	'no-remove|no-uninstall' => \$::no_remove,
