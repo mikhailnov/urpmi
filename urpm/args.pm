@@ -231,6 +231,7 @@ my %options_spec = (
     urpme => {
 	a => \$options{matches},
 	'nitronothing|fastunsafe' => sub { urpm::set_tune_rpm($urpm, "nofsync"); },
+	'report-orphans' => sub { $urpm->{options}{'report_orphans'} = 1; },
 	restricted => \$options{restricted},
     },
 

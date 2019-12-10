@@ -3740,6 +3740,11 @@ msgstr "Инсталлятор программ"
 msgid "Graphical front end to install RPM files"
 msgstr "Графический интерфейс для установки файлов RPM"
 
+#: ../urpme:62
+#, c-format
+msgid "  --report-orphans - calculate and report orphan packages after package removal.\n"
+msgstr " --report-orphans - вычислять пакеты-сироты после удаления пакетов.\n"
+
 #~ msgid "  --allow-recommends - auto select \"recommended\" packages.\n"
 #~ msgstr ""
 #~ "  --allow-recommends - автоматически выбирать рекомендованные пакеты\n"
@@ -3942,3 +3947,4 @@ msgstr "Графический интерфейс для установки фа
 #~ "условиям GNU GPL.\n"
 #~ "\n"
 #~ "использование:\n"
+
