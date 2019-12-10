@@ -38,6 +38,7 @@ our $allow_medium_change = 0;
 our $auto_select = 0;
 our $auto_update = 0;
 our $force_req_update = 0;
+our $auto_media = 1;
 our $auto_req = 1;
 our $no_install = 0;
 our $no_remove = 0;
@@ -80,12 +81,16 @@ usage:
 ") . N("  --synthesis    - use the given synthesis instead of urpmi db.
 ") . N("  --auto         - non-interactive mode, assume default answers to questions.
 ") . N("  --auto-req     - automatically choose among possible alternatives.
+") . N("  --auto-media   - when provided with remote files, try to add media from
+                  that files locations.
 ") . N("  --auto-select  - automatically select packages to upgrade the system.
 ") . N("  --auto-update  - update media then upgrade the system.
 ") . N("    --no-md5sum    - disable MD5SUM file checking.
 ") . N("    --force-key    - force update of gpg key.
 ") . N("  --auto-orphans - remove orphans without asking
 ") . N("  --no-auto-req  - ask user to choose among possible alternatives.
+") . N("  --no-auto-media - when provided with remote files, do not try to add media
+                  from that files locations.
 ") . N("  --no-suggests  - do not auto select \"suggested\" packages.
 ") . N("  --no-uninstall - never ask to uninstall a package, abort the installation.
 ") . N("  --no-install   - don't install packages (only download)
@@ -125,7 +130,7 @@ usage:
 ") . N("  --download-all - download all needed packages before trying to install them
                    (this is the default behavior)
 ") . N("  --no-download-all - download packages only when they are needed
-") . N("  --downloader   - program to use to retrieve distant files. 
+") . N("  --downloader   - program to use to retrieve distant files.
                    known programs: %s
 ", join(', ', urpm::download::ftp_http_downloaders()))
    . N("  --curl-options - additional options to pass to curl
@@ -182,6 +187,7 @@ usage:
 ");
     exit(1);
 }
+
 
 # Parse command line
 my $command_line = join " ", @ARGV;
@@ -275,6 +281,44 @@ if ($restricted) {
     urpm::error_restricted($urpm) if $urpm->{root} || $options{usedistrib} || $force || $env || $parallel || $options{synthesis} || $auto_update || $options{auto_orphans};
     foreach (qw(allow-nodeps allow-force curl-options rsync-options wget-options prozilla-options noscripts notriggers nofdigests)) {
 	urpm::error_restricted($urpm) if $urpm->{options}{$_};
+    }
+}
+
+# If we are provided with remote file names,
+# we will try to add media from the file locations.
+# Here we will remember added media to remove them at the end.
+my @added_media = ();
+
+if (@files and $auto_media and not $urpm->{options}{'no-auto-media'}) {
+    my %processed_urls = ();
+    my $with_dir;
+    urpm::media::read_config($urpm, 'nocheck');
+    foreach my $f (@files) {
+        if ($f =~ /^((http:\/\/|https:\/\/|ftp:\/\/).*)\/([^\/]+)$/) {
+            my $url = $1;
+            my $p = $3;
+            if (not $processed_urls{$url}) {
+                $processed_urls{$url} = 1;
+
+		# Force removal of a media if it is already present
+		my @to_add = ("medium_for_$p");
+                my @selected = urpm::media::select_media_by_name($urpm, \@to_add, 1, 1); # '1, 1' - for strict match and really quiet
+                if (@selected) {
+                    urpm::media::remove_media($urpm, \@selected);
+                }
+
+	        urpm::media::add_medium(
+	            $urpm,
+	            "medium_for_$p",
+	            $url
+	        );
+		urpm::download::copy_cmd_line_proxy("medium_for_$p");
+		urpm::media::update_media($urpm, %options,
+            		                      quiet => $options{verbose} < 0,
+                        		      callback => \&urpm::download::sync_logger);
+        	push @added_media, "medium_for_$p";
+            }
+        }
     }
 }
 
@@ -713,7 +757,7 @@ my $exit_code = urpm::main_loop::run($urpm, $state,
 	    } else {
 		$force || urpm::msg::ask_yes_or_no("$msg$msg2");
 	    }
-    },                           
+    },
     trans_error_summary => sub {
         my ($_nok, $errors) = @_;
     },
@@ -803,3 +847,13 @@ if ($pid_err || $pid_out) {
 print $urpm::postponed_msg if $urpm::postponed_code != 0;
 
 exit $exit_code;
+
+sub END()
+{
+    my @selected = urpm::media::select_media_by_name($urpm, \@added_media, 1, 1); # '1, 1' - for strict match and really quiet;
+    if (@selected) {
+	urpm::media::remove_media($urpm, \@selected);
+	urpm::media::write_urpmi_cfg($urpm);
+    }
+}
+

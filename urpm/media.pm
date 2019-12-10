@@ -1218,7 +1218,7 @@ sub select_media {
 }
 
 sub select_media_by_name {
-    my ($urpm, $names, $b_strict_match) = @_;
+    my ($urpm, $names, $b_strict_match, $really_quiet) = @_;
 
     my %wanted = map { $_ => 1 } @$names;
 
@@ -1239,10 +1239,10 @@ sub select_media_by_name {
 	}
 	@found = @foundi if !@found;
 
-	if (@found == 0) {
+	if (@found == 0 and not $really_quiet) {
 	    $urpm->{error}(N("trying to select nonexistent medium \"%s\"", $_));
 	} else {
-	    if (@found > 1) {
+	    if (@found > 1 and not $really_quiet) {
 		$urpm->{log}(N("selecting multiple media: %s", join(", ", map { qq("$_->{name}") } @found)));
 	    }
 	    #- changed behaviour to select all occurences by default.
