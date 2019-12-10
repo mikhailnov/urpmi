@@ -40,7 +40,7 @@ urpm::download - download routines for the urpm* tools
 =cut
 
 
-sub ftp_http_downloaders() { qw(curl wget prozilla aria2) }
+sub ftp_http_downloaders() { qw(curl wget prozilla aria2 curl_gost) }
 
 sub available_ftp_http_downloaders() {
     my %binaries = (
@@ -48,8 +48,9 @@ sub available_ftp_http_downloaders() {
 	wget => 'wget',
 	prozilla => 'proz',
 	aria2 => 'aria2c',
+	curl_gost => 'curl',
     );
-    grep { -x "/usr/bin/$binaries{$_}" || -x "/bin/$binaries{$_}" } ftp_http_downloaders();
+    grep { -x "/usr/bin/$binaries{$_}" || -x "/bin/$binaries{$_}" || $_ eq "curl_gost" } ftp_http_downloaders();
 }
 
 sub metalink_downloaders() { qw(aria2) }
@@ -533,6 +534,124 @@ sub sync_curl {
     $result;
 }
 
+sub sync_curl_gost {
+    my $options = shift;
+    $options = { dir => $options } if !ref $options;
+    my $curl_path = $options->{'curl_gost_path'} ? $options->{'curl_gost_path'} : "/usr/bin/curl";
+    chomp $curl_path;
+    -x "$curl_path" or die N("curl is missing\n");
+    if (defined $options->{'limit-rate'} && $options->{'limit-rate'} =~ /\d$/) {
+	#- use bytes by default
+	$options->{'limit-rate'} .= 'B';
+    }
+    #- force download to be done in cachedir to avoid polluting cwd,
+    #- however for curl, this is mandatory.
+    (my $cwd) = getcwd() =~ /(.*)/;
+    chdir($options->{dir});
+    my (@ftp_files, @other_files);
+    foreach (@_) {
+	my ($proto, $nick, $rest) = m,^(http|ftp)://([^:/]+):(.*),,;
+	if ($nick) { #- escape @ in user names
+	    $nick =~ s/@/%40/;
+	    $_ = "$proto://$nick:$rest";
+	}
+	if (m|^ftp://.*/([^/]*)$| && file_size($1) > 8192) { #- manage time stamp for large file only
+	    push @ftp_files, $_;
+	} else {
+	    push @other_files, $_;
+	}
+    }
+    if (@ftp_files) {
+	my ($cur_ftp_file, %ftp_files_info);
+	local $_;
+
+	eval { require Date::Manip };
+
+	#- prepare to get back size and time stamp of each file.
+	my $cmd = join(" ", map { "'$_'" } "$curl_path",
+	    "-q", # don't read .curlrc; some toggle options might interfer
+	    ($options->{'limit-rate'} ? ("--limit-rate", $options->{'limit-rate'}) : @{[]}),
+	    ($options->{proxy} ? set_proxy({ type => "curl", proxy => $options->{proxy} }) : @{[]}),
+	    ($options->{retry} ? ('--retry', $options->{retry}) : @{[]}),
+	    "--stderr", "-", # redirect everything to stdout
+	    "--disable-epsv",
+	    "--connect-timeout", $CONNECT_TIMEOUT,
+	    "-s", "-I",
+	    "--anyauth",
+	    (defined $options->{'curl-options'} ? split /\s+/, $options->{'curl-options'} : @{[]}),
+	    @ftp_files);
+	$options->{debug} and $options->{debug}($cmd);
+	open my $curl, "$cmd |";
+	while (<$curl>) {
+	    if (/Content-Length:\s*(\d+)/) {
+		!$cur_ftp_file || exists($ftp_files_info{$cur_ftp_file}{size})
+		    and $cur_ftp_file = shift @ftp_files;
+		$ftp_files_info{$cur_ftp_file}{size} = $1;
+	    }
+	    if (/Last-Modified:\s*(.*)/) {
+		!$cur_ftp_file || exists($ftp_files_info{$cur_ftp_file}{time})
+		    and $cur_ftp_file = shift @ftp_files;
+		eval {
+		    $ftp_files_info{$cur_ftp_file}{time} = Date::Manip::ParseDate($1);
+		};
+	    }
+	}
+	close $curl or _error('curl');
+
+	#- now analyse size and time stamp according to what already exists here.
+	if (@ftp_files) {
+	    #- re-insert back shifted element of ftp_files, because curl output above
+	    #- has not been parsed correctly, so in doubt download them all.
+	    push @ftp_files, keys %ftp_files_info;
+	} else {
+	    #- for that, it should be clear ftp_files is empty...
+	    #- elsewhere, the above work was useless.
+	    foreach (keys %ftp_files_info) {
+		my ($lfile) = m|/([^/]*)$| or next; #- strange if we can't parse it correctly.
+		my $ltime = eval { Date::Manip::ParseDate(scalar gmtime((stat $1)[9])) };
+		$ltime && -s $lfile == $ftp_files_info{$_}{size} && $ftp_files_info{$_}{time} eq $ltime
+		    or push @ftp_files, $_;
+	    }
+	}
+    }
+    # Indicates whether this option is available in our curl
+    our $location_trusted;
+    if (!defined $location_trusted) {
+	$location_trusted = `/usr/bin/curl -h` =~ /location-trusted/ ? 1 : 0;
+    }
+    #- http files (and other files) are correctly managed by curl wrt conditional download.
+    #- options for ftp files, -R (-O <file>)*
+    #- options for http files, -R (-O <file>)*
+    my $result;
+    if (my @all_files = (
+	    (map { ("-O", $_) } @ftp_files),
+	    (map { m|/| ? ("-O", $_) : @{[]} } @other_files)))
+    {
+	my @l = (@ftp_files, @other_files);
+	my $cmd = join(" ", map { "'$_'" } "$curl_path",
+	    "-q", # don't read .curlrc; some toggle options might interfer
+	    ($options->{'limit-rate'} ? ("--limit-rate", $options->{'limit-rate'}) : @{[]}),
+	    ($options->{resume} ? ("--continue-at", "-") : @{[]}),
+	    ($options->{proxy} ? set_proxy({ type => "curl", proxy => $options->{proxy} }) : @{[]}),
+	    ($options->{retry} ? ('--retry', $options->{retry}) : @{[]}),
+	    ($options->{quiet} ? "-s" : @{[]}),
+	    ($options->{"no-certificate-check"} ? "-k" : @{[]}),
+	    $location_trusted ? "--location-trusted" : @{[]},
+	    "-R",
+	    "-f",
+	    "--disable-epsv",
+	    "--connect-timeout", $CONNECT_TIMEOUT,
+	    "--anyauth",
+	    (defined $options->{'curl-options'} ? split /\s+/, $options->{'curl-options'} : @{[]}),
+	    "--stderr", "-", # redirect everything to stdout
+	    @all_files);
+	$options->{debug} and $options->{debug}($cmd);
+	$result = _curl_action($cmd, $options, @l);
+    }
+    chdir $cwd;
+    $result;
+}
+
 sub _curl_action {
     my ($cmd, $options, @l) = @_;
 
@@ -959,6 +1078,10 @@ sub sync_rel {
 
     my $files_text = join(' ', (use_metalink($urpm, $medium) ? ($medium->{mirrorlist}, $medium->{'with-dir'}) : url_obscuring_password($medium->{url})), @$rel_files);
     $urpm->{debug} and $urpm->{debug}(N("retrieving %s", $files_text));
+
+    if (!$options{curl_gost_path}) {
+        $options{curl_gost_path} = $urpm->{options}{curl_gost_path}."\n";
+    }
 
     my $all_options = _all_options($urpm, $medium, \%options);
     my @result_files = map { $all_options->{dir} . '/' . basename($_) } @$rel_files;
