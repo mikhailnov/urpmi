@@ -275,7 +275,7 @@ sub check_existing_medium {
 	  N("virtual medium \"%s\" should have a clear url, medium ignored",
 			   $medium->{name}) :
 	  N("unable to access list file of \"%s\", medium ignored", $medium->{name});
-    } elsif (!$medium->{ignore} 
+    } elsif (!$medium->{ignore} && !$medium->{ignore_for_now} 
 	     && !-r any_synthesis($urpm, $medium)) {
 	$err = N("unable to access synthesis file of \"%s\", medium ignored", $medium->{name});
     }
@@ -720,7 +720,7 @@ sub configure {
 	   }
 	}
 	if ($options{update}) {
-	    foreach (grep { !$_->{ignore} && $_->{update} } @{$urpm->{media} || []}) {
+	    foreach (grep { !$_->{ignore} && !$_->{ignore_for_now} && $_->{update} } @{$urpm->{media} || []}) {
 	       #- Ensure update media are selected
 	       $_->{modified} = 1;
 	       _tempignore($_, 0);
@@ -818,7 +818,7 @@ sub is_media_to_add_by_default {
 sub non_ignored_media {
     my ($urpm, $b_only_marked_update) = @_;
 
-    grep { !$_->{ignore} && (!$b_only_marked_update || $_->{update}) } @{$urpm->{media} || []};
+    grep { !$_->{ignore} && !$_->{ignore_for_now} && (!$b_only_marked_update || $_->{update}) } @{$urpm->{media} || []};
 }
 
 sub all_media_to_update {
@@ -1523,7 +1523,7 @@ sub _ignore_medium_on_parse_error {
     my ($urpm, $medium) = @_;
 
     $urpm->{error}(N("problem reading synthesis file of medium \"%s\"", $medium->{name}));
-    $medium->{ignore} = 1;
+    $medium->{ignore_for_now} = 1;
 }
 
 sub _copy_media_info_file {
