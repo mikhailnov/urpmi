@@ -332,16 +332,13 @@ sub _mandriva_mirrorlist {
     my @para = grep { $_ } $ENV{URPMI_ADDMEDIA_REASON};
     my $product_version = $ENV{URPMI_ADDMEDIA_PRODUCT_VERSION} || $product_id->{version};
 
-    # FIXME at some point, this should be changed to https:// so we can prevent
-    # a potential attacker from redirecting to his own "update" server.
-    # The server already supports https access, but the client side needs to
-    # work out certificate verification.
-    if ($product_id->{branch} eq "Devel") {
-        "http://downloads.openmandriva.org/mirrors/cooker.$arch.list"
-          . (@para ? '?' . join('&', @para) : '');
-    } else {
-        "http://downloads.openmandriva.org/mirrors/openmandriva.$product_version.$arch.list"
-          . (@para ? '?' . join('&', @para) : '');
+    if ($product_id->{product} eq "Enterprise") {
+        return "http://mirror.rosalinux.com/rosa/red/red.$arch.list"
+          	. (@para ? '?' . join('&', @para) : '');
+    }
+    else {
+    	return "http://mirror.rosalinux.com/rosa/rosa$product_version/rosa$product_version.$arch.list"
+      		. (@para ? '?' . join('&', @para) : '');
     }
 }
 
