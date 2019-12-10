@@ -394,8 +394,8 @@ sub sync_wget {
 			$total = '';
 		    } elsif ($buf =~ /^Length:\s*(\d\S*)/) {
 			$total = $1;
-		    } elsif (defined $total && $buf =~ m!^\s*(\d+)%.*\s+(\S+/s)\s+((ETA|eta)\s+(.*?)\s*)?[\r\n]$!ms) {
-			my ($percent, $speed, $eta) = ($1, $2, $5);
+		    } elsif (defined $total && $buf =~ m!^\S+\s+(\d+)%.*\s+\]\s+(\S+)\s+(\S+)\s+\s*((ETA|eta)\s+(.*?)\s*)?[\r\n]$!ms) {
+			my ($percent, $speed, $eta) = ($1, $3, $6);
 			if (propagate_sync_callback($options, 'progress', $file, $percent, $total, $eta, $speed) eq 'canceled') {
 			    kill 15, $wget_pid;
 			    close $wget;
