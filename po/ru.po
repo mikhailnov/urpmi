@@ -805,7 +805,7 @@ msgstr ""
 #: ../urpm/dudf.pm:73
 #, c-format
 msgid "Do you want to generate and upload a report?"
-msgstr ""
+msgstr "Создать и отправить отчет?"
 
 #: ../urpm/dudf.pm:79 ../urpmi:561 ../urpmi:580 ../urpmi:704
 #: ../urpmi.addmedia:137 ../urpmi.recover:325
@@ -895,6 +895,8 @@ msgid ""
 "\n"
 "Uploading synthesis file ..."
 msgstr ""
+"\n"
+"Публикация файла synthesis..."
 
 #: ../urpm/dudf.pm:363
 #, c-format
@@ -902,6 +904,8 @@ msgid ""
 "\n"
 "Synthesis successfully uploaded. It can be downloaded from"
 msgstr ""
+"\n"
+"Файл synthesis успешно опубликован. Его можно загрузить из"
 
 #: ../urpm/dudf.pm:420
 #, c-format
@@ -3789,23 +3793,23 @@ msgstr " --report-orphans - вычислять пакеты-сироты пос�
 #~ msgstr ""
 #~ "Требуется аутентификация для запуска программы установки пакетов Mageia"
 
-#~ msgid "Distribution Upgrade"
-#~ msgstr "Обновление дистрибутива"
+msgid "Distribution Upgrade"
+msgstr "Обновление дистрибутива"
 
-#~ msgid "Downloading package `%s'..."
-#~ msgstr "Загружается пакет «%s»..."
+msgid "Downloading package `%s'..."
+msgstr "Загружается пакет «%s»..."
 
-#~ msgid "Installing package `%s' (%s/%s)..."
-#~ msgstr "Устанавливается пакет «%s» (%s/%s)..."
+msgid "Installing package `%s' (%s/%s)..."
+msgstr "Устанавливается пакет «%s» (%s/%s)..."
 
-#~ msgid "Packages installation"
-#~ msgstr "Установка пакетов"
+msgid "Packages installation"
+msgstr "Установка пакетов"
 
-#~ msgid "Please wait..."
-#~ msgstr "Подождите, пожалуйста..."
+msgid "Please wait..."
+msgstr "Подождите..."
 
-#~ msgid "Removing package `%s' ..."
-#~ msgstr "Удаляется пакет «%s»..."
+msgid "Removing package `%s' ..."
+msgstr "Удаляется пакет «%s»..."
 
 #~ msgid "Run Mageia Package Installer"
 #~ msgstr "Запуск программы установки пакетов Mageia"
@@ -3819,8 +3823,8 @@ msgstr " --report-orphans - вычислять пакеты-сироты пос�
 #~ "%s\n"
 #~ "Продолжить установку?"
 
-#~ msgid "Verifying package signatures..."
-#~ msgstr "Проверяются подписи пакетов..."
+msgid "Verifying package signatures..."
+msgstr "Проверяются подписи пакетов..."
 
 #~ msgid ""
 #~ "usage: urpmi.addmedia [options] <name> <url>\n"
