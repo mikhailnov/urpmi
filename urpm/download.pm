@@ -40,7 +40,7 @@ urpm::download - download routines for the urpm* tools
 =cut
 
 
-sub ftp_http_downloaders() { qw(curl wget prozilla aria2 curl_gost) }
+sub ftp_http_downloaders() { qw(wget curl prozilla aria2 curl_gost) }
 
 sub available_ftp_http_downloaders() {
     my %binaries = (
@@ -84,9 +84,9 @@ sub preferred_downloader {
 	#- If metalink is used, only aria2 is available as other downloaders doesn't support metalink
 	unshift @available, @metalink_downloaders;
     }
-	    
-    #- first downloader of @available is the default one
-    my $preferred = (@metalink_downloaders && !$metalink_disabled) ? $metalink_downloaders[0] : $available[0];
+
+    #- wget is the default downloader
+    my $preferred = $available[0];
     my $requested_downloader = requested_ftp_http_downloader($urpm, $medium);
     if ($requested_downloader) {
 	if (member($requested_downloader, @available)) {
