@@ -249,37 +249,42 @@ sub _expand {
 #- side-effects: $mirrors
 sub add_proximity_and_sort {
     my ($urpm, $mirrors) = @_;
-
-    my ($latitude, $longitude, $country_code);
-
-    require Time::ZoneInfo;
-    if (my $zone = Time::ZoneInfo->current_zone) {
-	if (my $zones = Time::ZoneInfo->new) {
-	    if (($latitude, $longitude) = $zones->latitude_longitude_decimal($zone)) {
-		$country_code = $zones->country($zone);
-		$urpm->{log}(N("found geolocalisation %s %.2f %.2f from timezone %s", $country_code, $latitude, $longitude, $zone));
-	    }
-	}
-    }
-    defined $latitude && defined $longitude or return;
-
-    foreach (@$mirrors) {
-	$_->{latitude} || $_->{longitude} or next;
-	my $PI = 3.14159265358979;
-	my $x = $latitude - $_->{latitude};
-	my $y = ($longitude - $_->{longitude}) * cos($_->{latitude} / 180 * $PI);
-	$_->{proximity} = sqrt($x * $x + $y * $y);
-    }
-    my ($best) = sort { $a->{proximity} <=> $b->{proximity} } @$mirrors;
-
-    foreach (@$mirrors) {
-	$_->{proximity_corrected} = $_->{proximity} * _random_correction();
-	$_->{proximity_corrected} *= _between_country_correction($country_code, $_->{country}) if $best;
-	$_->{proximity_corrected} *= _between_continent_correction($best->{continent}, $_->{continent}) if $best;
-    }
-    # prefer http mirrors by sorting them to the beginning
-    @$mirrors = sort { ($b->{url} =~ m!^http://!) <=> ($a->{url} =~ m!^http://!)
-		       || $a->{proximity_corrected} <=> $b->{proximity_corrected} } @$mirrors;
+#
+#    The algorithm with latitude/longitude provde to be inappropriate for CDNs
+#    like Yandex. It would be better to somehow estimate real connection speed
+#    and even switch mirrors on the fly if the speed becomes too slow
+#
+#    my ($latitude, $longitude, $country_code);
+#
+#    require Time::ZoneInfo;
+#    if (my $zone = Time::ZoneInfo->current_zone) {
+#	if (my $zones = Time::ZoneInfo->new) {
+#	    if (($latitude, $longitude) = $zones->latitude_longitude_decimal($zone)) {
+#		$country_code = $zones->country($zone);
+#		$urpm->{log}(N("found geolocalisation %s %.2f %.2f from timezone %s", $country_code, $latitude, $longitude, $zone));
+#	    }
+#	}
+#    }
+#    defined $latitude && defined $longitude or return;
+#
+#    foreach (@$mirrors) {
+#	$_->{latitude} || $_->{longitude} or next;
+#	my $PI = 3.14159265358979;
+#	my $x = $latitude - $_->{latitude};
+#	my $y = ($longitude - $_->{longitude}) * cos($_->{latitude} / 180 * $PI);
+#	$_->{proximity} = sqrt($x * $x + $y * $y);
+#    }
+#    my ($best) = sort { $a->{proximity} <=> $b->{proximity} } @$mirrors;
+#
+#    foreach (@$mirrors) {
+#	$_->{proximity_corrected} = $_->{proximity} * _random_correction();
+#	$_->{proximity_corrected} *= _between_country_correction($country_code, $_->{country}) if $best;
+#	$_->{proximity_corrected} *= _between_continent_correction($best->{continent}, $_->{continent}) if $best;
+#    }
+#    # prefer http mirrors by sorting them to the beginning
+#    @$mirrors = sort { ($b->{url} =~ m!^http://!) <=> ($a->{url} =~ m!^http://!)
+#		       || $a->{proximity_corrected} <=> $b->{proximity_corrected} } @$mirrors;
+    return;
 }
 
 # add +/- 5% random
