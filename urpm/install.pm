@@ -333,6 +333,11 @@ See L<URPM> for callback parameters
 #- side-effects: uses a $urpm->{readmes}
 sub install {
     my ($urpm, $remove, $install, $upgrade, %options) = @_;
+    my $total_pkgs = scalar(@{$remove || []}) + scalar(values %$install) + scalar(values %$upgrade);
+    if ($total_pkgs == 0) {
+        return;
+    }
+
     $options{translate_message} = 1;
 
     my $db = urpm::db_open_or_die_($urpm, !$options{test}); #- open in read/write mode unless testing installation.
