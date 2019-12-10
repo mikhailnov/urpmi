@@ -177,7 +177,11 @@ _urpmq()
 	    --whatrequires-recursive --skip --prefer --use-distrib \
 	    --searchmedia --ignorearch" -- $cur))
     else
-	# return rpm files (can't list available packages anymore)
+	# return available packages (unless clearly a file)
+	# and rpm files
+	if [[ "$cur" != */* ]]; then
+	    _urpmi_packages
+	fi
 	_filedir rpm
     fi
 }
