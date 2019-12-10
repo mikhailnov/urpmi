@@ -289,9 +289,11 @@ sub _search_packages_keep_best {
     #- we assume that if there is at least one package providing
     #- the resource exactly, this should be the best one; but we
     #- first check if one of the packages has the same name as searched.
-    if (my @l2 = grep { $_->name eq $name } @l) {
-	@l = @l2;
-    }
+# Comment this out - we have cases when a package with different name has the same provides
+# with higher version, wand we want the newest version to be installed;
+#    if (my @l2 = grep { $_->name eq $name } @l) {
+#	@l = @l2;
+#    }
     join('|', map { $_->id } @l);
 }
 
