@@ -475,6 +475,14 @@ sub run {
 
     _handle_removable_media($urpm, $callbacks, $blists, \%sources);
 
+    if (not exists($urpm->{options}{'no-download-all'}) and not exists $urpm->{options}{'download-all'}) {
+       $urpm->{options}{'download-all'} = "";
+    }
+
+    if (exists($urpm->{options}{'no-download-all'})) {
+       delete($urpm->{options}{'download-all'});
+    }
+
     if (exists $options->{'download-all'}) {
         _download_all($urpm, $blists, \%sources, $callbacks);
     }

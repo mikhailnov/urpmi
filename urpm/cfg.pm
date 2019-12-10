@@ -188,6 +188,7 @@ sub load_config_raw {
 	    |strict-arch
 	    |nopubkey
 	    |no-force-req-update
+	    |no-download-all
 	    |resume)(?:\s*:\s*(.*))?$/x
 	) {
 	    #- boolean options
