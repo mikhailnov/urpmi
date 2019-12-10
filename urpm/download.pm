@@ -459,7 +459,6 @@ sub sync_curl {
 	    "--disable-epsv",
 	    "--connect-timeout", $CONNECT_TIMEOUT,
 	    "-s", "-I",
-	    "--anyauth",
 	    (defined $options->{'curl-options'} ? split /\s+/, $options->{'curl-options'} : @{[]}),
 	    @ftp_files);
 	$options->{debug} and $options->{debug}($cmd);
@@ -523,7 +522,6 @@ sub sync_curl {
 	    "-f",
 	    "--disable-epsv",
 	    "--connect-timeout", $CONNECT_TIMEOUT,
-	    "--anyauth",
 	    (defined $options->{'curl-options'} ? split /\s+/, $options->{'curl-options'} : @{[]}),
 	    "--stderr", "-", # redirect everything to stdout
 	    @all_files);
