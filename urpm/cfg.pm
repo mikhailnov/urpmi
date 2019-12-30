@@ -154,7 +154,6 @@ sub load_config_raw {
 	  |priority-upgrade
 	  |prohibit-remove
 	  |downloader
-	  |curl_gost_path
 	  |retry
 	  |default-media
 	  |download-all

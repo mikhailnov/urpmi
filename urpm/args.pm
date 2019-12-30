@@ -164,7 +164,6 @@ my %options_spec = (
 	'downloader=s' => sub { $urpm->{options}{downloader} = $_[1] },
 	'download-timeout=s' => sub { $urpm->{options}{download_timeout} = $_[1] },
 	'retry-hard=s' => sub { $urpm->{options}{retry_hard} = $_[1] },
-	'curl_gost_path=s' => sub { $urpm->{options}{curl_gost_path} = $_[1] },
 
 	'curl-options=s' => sub { $urpm->{options}{'curl-options'} = $_[1] },
 	'rsync-options=s' => sub { $urpm->{options}{'rsync-options'} = $_[1] },
