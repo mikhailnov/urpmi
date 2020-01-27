@@ -574,20 +574,7 @@ if ($options{replacepkgs}) {
     );
 }
 
-# sorted by medium for format_selected_packages
-my @to_install = @{$urpm->{depslist}}[sort { $a <=> $b } keys %{$state->{selected}}];
-
-#foreach my $pkg (@to_install) {
-#    #- reflect change in flag usage, now requested is set whatever a package is selected or not,
-#    #- but required is always set (so a required but not requested is a pure dependency).
-#    $ask_user ||= !$pkg->flag_requested || $auto_select || $parallel;
-#}
-
 {
-    my $q;
-    foreach my $pkg (@to_install) {
-        if ($pkg->flag_requested) {
-	    $q = $q . 
     my $msg = urpm::select::translate_already_installed($state);
     $msg and print "$msg\n";
 }
@@ -671,6 +658,7 @@ have to be removed for others to be upgraded:\n%s\n", $list);
 #- has not been given by the user.
 my $ask_user = $env || $search_result eq 'substring';
 
+my @to_install = @{$urpm->{depslist}}[sort { $a <=> $b } keys %{$state->{selected}}]; # sorted by medium for format_selected_packages
 {
     my @binary = grep { $_->arch ne 'src' } @to_install;
     if ($install_src) {
